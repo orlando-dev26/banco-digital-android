@@ -1,5 +1,7 @@
 package com.banco.digital.ui.screens
 
+import androidx.activity.compose.BackHandler
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,8 +34,13 @@ import androidx.compose.ui.unit.sp
 data class BottomNavItem(val label: String, val icon: ImageVector)
 
 @Composable
-fun MainContainerScreen() {
+fun MainContainerScreen(onNavigateToTransfer: () -> Unit = {}) { // <--- AGREGA ESTO
     var selectedNavIndex by rememberSaveable { mutableIntStateOf(0) }
+
+    // ESTO MANEJA EL BOTÓN ATRÁS DENTRO DE LAS PESTAÑAS
+    BackHandler(enabled = selectedNavIndex != 0) {
+        selectedNavIndex = 0 // Si no estás en el Inicio, te regresa al Inicio
+    }
 
     val navItems = listOf(
         BottomNavItem("Inicio", Icons.Default.Home),
@@ -90,7 +97,7 @@ fun MainContainerScreen() {
                 .padding(innerPadding)
         ) {
             when (selectedNavIndex) {
-                0 -> HomeScreenContent()
+                0 -> HomeScreenContent(onNavigateToTransfer = onNavigateToTransfer) // <--- CONÉCTALO AQUÍ
                 1 -> CardsScreenContent()
                 2 -> NotificationsScreenContent()
                 3 -> ProfileScreenContent() // ¡Navegación 100% completa!

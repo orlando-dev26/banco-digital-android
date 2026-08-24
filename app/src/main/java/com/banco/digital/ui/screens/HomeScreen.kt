@@ -63,7 +63,8 @@ fun HomeScreenContent(
     userName: String = "Orlando",
     cardNumber: String = "•••• •••• •••• 3279",
     expDate: String = "08/28",
-    balance: String = "S/ 4,580.50"
+    balance: String = "S/ 4,580.50",
+    onNavigateToTransfer: () -> Unit = {} // <--- AGREGA ESTO
 ) {
     var selectedTab by remember { mutableStateOf("Gastos") }
     val backgroundColor = Color(0xFFF4F5F7)
@@ -91,7 +92,7 @@ fun HomeScreenContent(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        QuickActionsSection()
+        QuickActionsSection(onNavigateToTransfer = onNavigateToTransfer) // <--- ACTUALIZA ESTO
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -160,9 +161,11 @@ private fun CompactCreditCard(userName: String, cardNumber: String, expDate: Str
 }
 
 @Composable
-private fun QuickActionsSection() {
+private fun QuickActionsSection(onNavigateToTransfer: () -> Unit = {}) { // <--- RECIBE EL PARÁMETRO AQUÍ
     Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        QuickActionButton("Enviar", Icons.Default.NorthEast, Modifier.weight(1f)) { }
+        QuickActionButton("Enviar", Icons.Default.NorthEast, Modifier.weight(1f)) {
+            onNavigateToTransfer() // <--- LE DAMOS LA ACCIÓN AQUÍ
+        }
         QuickActionButton("Solicitar", Icons.Default.SouthWest, Modifier.weight(1f)) { }
         QuickActionButton("Más", Icons.Default.MoreHoriz, Modifier.weight(1f)) { }
     }

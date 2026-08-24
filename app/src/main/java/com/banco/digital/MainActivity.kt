@@ -5,54 +5,82 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.biometric.BiometricPrompt
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.banco.digital.ui.screens.LoginScreen
 import com.banco.digital.ui.screens.MainContainerScreen
 import com.banco.digital.ui.screens.RegisterScreen
+import com.banco.digital.ui.screens.TransferScreen
 import com.banco.digital.ui.theme.DigitalBankAppTheme
 
-// IMPORTANTE: Cambiamos ComponentActivity a FragmentActivity para la biometría
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             DigitalBankAppTheme {
-                var currentScreen by remember { mutableStateOf("Login") }
+                // El enrutador oficial de Jetpack Compose
+                val navController = rememberNavController()
 
-                when (currentScreen) {
-                    "Login" -> {
+                NavHost(navController = navController, startDestination = "login") {
+
+                    composable("login") {
                         LoginScreen(
-                            onNavigateToRegister = { currentScreen = "Register" },
-                            onLoginSuccess = { currentScreen = "MainApp" },
-                            // Pasamos la función que invoca al sensor
+                            onNavigateToRegister = { navController.navigate("register") },
+                            onLoginSuccess = {
+                                // Navegamos a la app y borramos el login del historial
+                                navController.navigate("main") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            },
                             onBiometricClick = {
                                 authenticateWithBiometrics(
-                                    onSuccess = { currentScreen = "MainApp" }
+                                    onSuccess = {
+                                        navController.navigate("main") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    }
                                 )
                             }
                         )
                     }
-                    "Register" -> {
+
+                    composable("register") {
                         RegisterScreen(
-                            onNavigateBack = { currentScreen = "Login" },
-                            onRegisterSuccess = { currentScreen = "MainApp" }
+                            onNavigateBack = { navController.popBackStack() }, // Vuelve atrás correctamente
+                            onRegisterSuccess = {
+                                navController.navigate("main") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            }
                         )
                     }
-                    "MainApp" -> {
-                        MainContainerScreen()
+
+                    composable("main") {
+                        MainContainerScreen(
+                            onNavigateToTransfer = { navController.navigate("transfer") } // Al hacer clic, navega a transfer
+                        )
+                    }
+
+                    // --- NUEVA PANTALLA DE TRANSFERENCIA ---
+                    composable("transfer") {
+                        TransferScreen(
+                            onNavigateBack = { navController.popBackStack() }, // El botón regresar funciona
+                            onTransferSubmit = { destination, amount, description, idempotencyKey ->
+                                // Por ahora solo volvemos atrás.
+                                // En el próximo paso crearemos la pantalla de "Verificación / Éxito"
+                                navController.popBackStack()
+                            }
+                        )
                     }
                 }
             }
         }
     }
 
-    // Función que invoca el hardware de Face ID / Huella
     private fun authenticateWithBiometrics(onSuccess: () -> Unit) {
         val executor = ContextCompat.getMainExecutor(this)
         val biometricPrompt = BiometricPrompt(this, executor,
@@ -65,7 +93,7 @@ class MainActivity : FragmentActivity() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
                     Toast.makeText(applicationContext, "Identidad verificada", Toast.LENGTH_SHORT).show()
-                    onSuccess() // Si la huella es correcta, entra a la app
+                    onSuccess()
                 }
 
                 override fun onAuthenticationFailed() {
