@@ -92,8 +92,8 @@ fun MainContainerScreen() {
             when (selectedNavIndex) {
                 0 -> HomeScreenContent()
                 1 -> CardsScreenContent()
-                2 -> NotificationsScreenContent() // Llama al archivo que ya tienes bien configurado
-                3 -> PlaceholderProfileView("Próximamente: Perfil, Seguridad y Biometría")
+                2 -> NotificationsScreenContent()
+                3 -> ProfileScreenContent() // ¡Navegación 100% completa!
             }
         }
     }
