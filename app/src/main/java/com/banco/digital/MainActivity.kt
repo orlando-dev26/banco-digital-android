@@ -4,11 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
-import com.banco.digital.ui.screens.HomeScreen
+import com.banco.digital.ui.screens.MainContainerScreen
 import com.banco.digital.ui.theme.DigitalBankAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -17,13 +13,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DigitalBankAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                    )
-                }
+                // LLAMAMOS DIRECTAMENTE AL CONTENEDOR PRINCIPAL
+                // Este ya contiene el Scaffold y la barra de navegación inferior
+                MainContainerScreen()
             }
         }
     }
