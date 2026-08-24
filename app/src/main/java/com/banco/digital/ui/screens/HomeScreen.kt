@@ -64,7 +64,8 @@ fun HomeScreenContent(
     cardNumber: String = "•••• •••• •••• 3279",
     expDate: String = "08/28",
     balance: String = "S/ 4,580.50",
-    onNavigateToTransfer: () -> Unit = {} // <--- AGREGA ESTO
+    onNavigateToTransfer: () -> Unit = {}, // <--- AGREGA ESTO
+    onNavigateToTransactionDetail: () -> Unit = {} // <--- AGREGA ESTO
 ) {
     var selectedTab by remember { mutableStateOf("Gastos") }
     val backgroundColor = Color(0xFFF4F5F7)
@@ -100,6 +101,7 @@ fun HomeScreenContent(
             selectedTab = selectedTab,
             onTabSelected = { selectedTab = it },
             transactions = sampleTransactions,
+            onItemClick = onNavigateToTransactionDetail, // <--- AGREGA ESTO AQUÍ
             modifier = Modifier.weight(1f)
         )
     }
@@ -185,7 +187,13 @@ private fun QuickActionButton(title: String, icon: ImageVector, modifier: Modifi
 }
 
 @Composable
-private fun TransactionsPanel(selectedTab: String, onTabSelected: (String) -> Unit, transactions: List<TransactionItemModel>, modifier: Modifier = Modifier) {
+private fun TransactionsPanel(
+    selectedTab: String,
+    onTabSelected: (String) -> Unit,
+    transactions: List<TransactionItemModel>,
+    onItemClick: () -> Unit = {}, // <--- AGREGA ESTE PARÁMETRO
+    modifier: Modifier = Modifier
+    ) {
     Surface(modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp), color = Color(0xFFFFFFFF)) {
         Column(modifier = Modifier.fillMaxSize().padding(top = 14.dp, start = 16.dp, end = 16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -197,7 +205,9 @@ private fun TransactionsPanel(selectedTab: String, onTabSelected: (String) -> Un
             }
             Spacer(modifier = Modifier.height(10.dp))
             LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(transactions, key = { it.id }) { item -> TransactionRow(item) }
+                items(transactions, key = { it.id }) { item ->
+                    TransactionRow(item = item, onClick = onItemClick) //
+                }
             }
         }
     }
@@ -211,8 +221,20 @@ private fun FlatTabPill(text: String, isSelected: Boolean, onClick: () -> Unit) 
 }
 
 @Composable
-private fun TransactionRow(item: TransactionItemModel) {
-    Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color(0xFFF1F5F9)).padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+private fun TransactionRow(
+    item: TransactionItemModel,
+    onClick: () -> Unit = {} // <--- AGREGO ESTE PARÁMETRO
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFF1F5F9))
+            .clickable { onClick() } // <--- AGREGA ESTA LÍNEA PARA QUE SEA CLICKEABLE
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
             Box(modifier = Modifier.size(42.dp).clip(CircleShape).background(Color(0xFFE2E8F0)), contentAlignment = Alignment.Center) {
                 Icon(item.icon, contentDescription = null, tint = Color(0xFF1E293B), modifier = Modifier.size(20.dp))

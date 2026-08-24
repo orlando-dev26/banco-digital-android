@@ -34,7 +34,10 @@ import androidx.compose.ui.unit.sp
 data class BottomNavItem(val label: String, val icon: ImageVector)
 
 @Composable
-fun MainContainerScreen(onNavigateToTransfer: () -> Unit = {}) { // <--- AGREGA ESTO
+fun MainContainerScreen(
+    onNavigateToTransfer: () -> Unit = {},
+    onNavigateToTransactionDetail: () -> Unit = {} // <--- AGREGA ESTO
+) { // <--- AGREGA ESTO
     var selectedNavIndex by rememberSaveable { mutableIntStateOf(0) }
 
     // ESTO MANEJA EL BOTÓN ATRÁS DENTRO DE LAS PESTAÑAS
@@ -97,7 +100,10 @@ fun MainContainerScreen(onNavigateToTransfer: () -> Unit = {}) { // <--- AGREGA 
                 .padding(innerPadding)
         ) {
             when (selectedNavIndex) {
-                0 -> HomeScreenContent(onNavigateToTransfer = onNavigateToTransfer) // <--- CONÉCTALO AQUÍ
+                0 -> HomeScreenContent(
+                    onNavigateToTransfer = onNavigateToTransfer,
+                    onNavigateToTransactionDetail = onNavigateToTransactionDetail // <--- CONÉCTALO AQUÍ
+                ) // <--- CONÉCTALO AQUÍ
                 1 -> CardsScreenContent()
                 2 -> NotificationsScreenContent()
                 3 -> ProfileScreenContent() // ¡Navegación 100% completa!

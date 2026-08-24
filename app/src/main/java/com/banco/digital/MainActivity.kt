@@ -13,6 +13,9 @@ import androidx.navigation.compose.rememberNavController
 import com.banco.digital.ui.screens.LoginScreen
 import com.banco.digital.ui.screens.MainContainerScreen
 import com.banco.digital.ui.screens.RegisterScreen
+import com.banco.digital.ui.screens.TransactionDetailScreen
+import com.banco.digital.ui.screens.TransferHoldScreen
+import com.banco.digital.ui.screens.TransferResultScreen
 import com.banco.digital.ui.screens.TransferScreen
 import com.banco.digital.ui.theme.DigitalBankAppTheme
 
@@ -61,21 +64,54 @@ class MainActivity : FragmentActivity() {
 
                     composable("main") {
                         MainContainerScreen(
-                            onNavigateToTransfer = { navController.navigate("transfer") } // Al hacer clic, navega a transfer
+                            onNavigateToTransfer = { navController.navigate("transfer") },
+                            onNavigateToTransactionDetail = { navController.navigate("transaction_detail") } // <--- AGREGA ESTA LÍNEA
                         )
                     }
 
-                    // --- NUEVA PANTALLA DE TRANSFERENCIA ---
+                    // --- PANTALLA DE TRANSFERENCIA (FORMULARIO) ---
                     composable("transfer") {
                         TransferScreen(
-                            onNavigateBack = { navController.popBackStack() }, // El botón regresar funciona
+                            onNavigateBack = { navController.popBackStack() },
                             onTransferSubmit = { destination, amount, description, idempotencyKey ->
-                                // Por ahora solo volvemos atrás.
-                                // En el próximo paso crearemos la pantalla de "Verificación / Éxito"
-                                navController.popBackStack()
+                                // Aquí saltamos a la pantalla de resultado
+                                navController.navigate("transfer_result")
                             }
                         )
                     }
+
+                    // --- PANTALLA DE RESULTADO (VOUCHER) ---
+                    composable("transfer_result") {
+                        TransferResultScreen(
+                            // Cuando le de a "Volver al Inicio", regresamos al contenedor y limpiamos el historial
+                            onNavigateHome = {
+                                navController.navigate("main") {
+                                    popUpTo("main") { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+
+                    // --- DETALLE DE MOVIMIENTO HISTÓRICO ---
+                    composable("transaction_detail") {
+                        TransactionDetailScreen(
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    // --- PANTALLA DE RETENCIÓN DE FRAUDE ---
+                    composable("transfer_hold") {
+                        TransferHoldScreen(
+                            onNavigateHome = {
+                                navController.navigate("main") {
+                                    popUpTo("main") { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+
+
+
                 }
             }
         }
