@@ -36,8 +36,9 @@ data class BottomNavItem(val label: String, val icon: ImageVector)
 @Composable
 fun MainContainerScreen(
     onNavigateToTransfer: () -> Unit = {},
-    onNavigateToTransactionDetail: () -> Unit = {} // <--- AGREGA ESTO
-) { // <--- AGREGA ESTO
+    onNavigateToTransactionDetail: () -> Unit = {},
+    onLogoutClick: () -> Unit = {}
+) {
     var selectedNavIndex by rememberSaveable { mutableIntStateOf(0) }
 
     // ESTO MANEJA EL BOTÓN ATRÁS DENTRO DE LAS PESTAÑAS
@@ -102,11 +103,11 @@ fun MainContainerScreen(
             when (selectedNavIndex) {
                 0 -> HomeScreenContent(
                     onNavigateToTransfer = onNavigateToTransfer,
-                    onNavigateToTransactionDetail = onNavigateToTransactionDetail // <--- CONÉCTALO AQUÍ
-                ) // <--- CONÉCTALO AQUÍ
+                    onNavigateToTransactionDetail = onNavigateToTransactionDetail
+                )
                 1 -> CardsScreenContent()
                 2 -> NotificationsScreenContent()
-                3 -> ProfileScreenContent() // ¡Navegación 100% completa!
+                3 -> ProfileScreenContent(onLogoutClick = onLogoutClick)
             }
         }
     }

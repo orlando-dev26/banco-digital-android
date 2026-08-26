@@ -55,7 +55,8 @@ fun ProfileScreenContent(
     documentNumber: String = "76543210",
     email: String = "orlando@bancodigital.com",
     phone: String = "+51 987 654 321",
-    customerSince: String = "Agosto 2026"
+    customerSince: String = "Agosto 2026",
+    onLogoutClick: () -> Unit = {}
 ) {
     var biometricEnabled by remember { mutableStateOf(true) }
 
@@ -185,7 +186,7 @@ fun ProfileScreenContent(
                 .padding(horizontal = 16.dp, vertical = 16.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(Color(0xFFFEE2E2))
-                .clickable { /* Ejecutar cierre de sesión con revocación (Identity Service) */ }
+                .clickable { onLogoutClick() }
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {

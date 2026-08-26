@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SouthWest
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -138,6 +140,7 @@ private fun HeaderSection(userName: String) {
 
 @Composable
 private fun CompactCreditCard(userName: String, cardNumber: String, expDate: String, balance: String) {
+    var isBalanceVisible by remember { mutableStateOf(false) }
     val mintGradient = Brush.linearGradient(colors = listOf(Color(0xFFDCFCE7), Color(0xFFA7F3D0), Color(0xFF6EE7B7)))
     val darkGreenColor = Color(0xFF064E3B)
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), color = Color.Transparent) {
@@ -154,7 +157,23 @@ private fun CompactCreditCard(userName: String, cardNumber: String, expDate: Str
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
                 Column {
                     Text("Saldo Total", fontSize = 10.sp, color = darkGreenColor)
-                    Text(balance, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = darkGreenColor)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = if (isBalanceVisible) balance else "****", 
+                            fontSize = 18.sp, 
+                            fontWeight = FontWeight.ExtraBold, 
+                            color = darkGreenColor
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = if (isBalanceVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = "Ver saldo",
+                            tint = darkGreenColor,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clickable { isBalanceVisible = !isBalanceVisible }
+                        )
+                    }
                 }
                 Text("BANCO DIGITAL", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF042F2C).copy(alpha = 0.7f))
             }

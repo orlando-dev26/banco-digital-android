@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.banco.digital.ui.screens.BiometricSetupScreen
 import com.banco.digital.ui.screens.LoginScreen
 import com.banco.digital.ui.screens.MainContainerScreen
 import com.banco.digital.ui.screens.RegisterScreen
@@ -17,6 +18,7 @@ import com.banco.digital.ui.screens.TransactionDetailScreen
 import com.banco.digital.ui.screens.TransferHoldScreen
 import com.banco.digital.ui.screens.TransferResultScreen
 import com.banco.digital.ui.screens.TransferScreen
+import com.banco.digital.ui.screens.VerifySmsScreen
 import com.banco.digital.ui.theme.DigitalBankAppTheme
 
 class MainActivity : FragmentActivity() {
@@ -53,8 +55,36 @@ class MainActivity : FragmentActivity() {
 
                     composable("register") {
                         RegisterScreen(
-                            onNavigateBack = { navController.popBackStack() }, // Vuelve atrás correctamente
-                            onRegisterSuccess = {
+                            onNavigateBack = { navController.popBackStack() },
+                            onRegisterSuccess = { _, _, _, _, _, _, _, _ ->
+                                navController.navigate("biometric_setup")
+                            }
+                        )
+                    }
+
+                    composable("verify_sms") {
+                        VerifySmsScreen(
+                            onVerifyClick = { email, pin, smsCode ->
+                                navController.navigate("main") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            },
+                            onCancelClick = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable("biometric_setup") {
+                        BiometricSetupScreen(
+                            onEnableBiometricsClick = {
+                                authenticateWithBiometrics(
+                                    onSuccess = {
+                                        navController.navigate("main") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    }
+                                )
+                            },
+                            onSkipClick = {
                                 navController.navigate("main") {
                                     popUpTo("login") { inclusive = true }
                                 }
@@ -65,7 +95,12 @@ class MainActivity : FragmentActivity() {
                     composable("main") {
                         MainContainerScreen(
                             onNavigateToTransfer = { navController.navigate("transfer") },
-                            onNavigateToTransactionDetail = { navController.navigate("transaction_detail") } // <--- AGREGA ESTA LÍNEA
+                            onNavigateToTransactionDetail = { navController.navigate("transaction_detail") },
+                            onLogoutClick = {
+                                navController.navigate("login") {
+                                    popUpTo(0) // Limpiar historial
+                                }
+                            }
                         )
                     }
 
