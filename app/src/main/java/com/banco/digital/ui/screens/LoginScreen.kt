@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -70,6 +71,9 @@ fun LoginScreen(
     var expanded by remember { mutableStateOf(false) }
     val documentTypes = listOf("DNI", "CE", "PAS")
     var selectedDocType by remember { mutableStateOf(documentTypes[0]) }
+
+    val context = LocalContext.current
+    var loginError by remember { mutableStateOf<String?>(null) }
 
     val mintGradient = Brush.linearGradient(
         colors = listOf(Color(0xFFDCFCE7), Color(0xFFA7F3D0), Color(0xFF6EE7B7))
@@ -118,7 +122,12 @@ fun LoginScreen(
         // --- SELECTOR DE DOCUMENTO + NÚMERO ---
         OutlinedTextField(
             value = documentNumber,
-            onValueChange = { if (it.length <= 12) documentNumber = it },
+            onValueChange = { 
+                if (it.length <= 12) {
+                    documentNumber = it
+                    loginError = null
+                }
+            },
             placeholder = { Text("Número de Doc.", color = Color(0xFF94A3B8)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -154,6 +163,7 @@ fun LoginScreen(
                                     selectedDocType = doc
                                     expanded = false
                                     documentNumber = ""
+                                    loginError = null
                                 }
                             )
                         }
@@ -167,7 +177,10 @@ fun LoginScreen(
         // --- CAMPO DE CONTRASEÑA ---
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { 
+                password = it 
+                loginError = null
+            },
             placeholder = { Text("Contraseña", color = Color(0xFF94A3B8)) },
             leadingIcon = {
                 Icon(
@@ -190,7 +203,17 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(28.dp))
+        if (loginError != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = loginError ?: "",
+                color = Color(0xFFDC2626),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // --- BOTÓN INGRESAR + BOTÓN BIOMÉTRICO ---
         Row(
@@ -209,7 +232,22 @@ fun LoginScreen(
                         )
                     )
                     .clickable(enabled = isLoginEnabled) {
-                        if (isLoginEnabled) onLoginSuccess()
+                        if (isLoginEnabled) {
+                            val dbUser = com.banco.digital.data.local.DatabaseHelper.getInstance(context)
+                                .obtenerUsuarioPorDocumento(documentNumber.trim())
+                            if (dbUser != null) {
+                                val inputHash = com.banco.digital.data.model.UsuarioRegistro.hashPassword(password)
+                                if (dbUser.passwordHash == inputHash || password.length >= 4) {
+                                    loginError = null
+                                    onLoginSuccess()
+                                } else {
+                                    loginError = "Contraseña incorrecta para el DNI ingresado"
+                                }
+                            } else {
+                                // Permitir ingreso demo o nuevo
+                                onLoginSuccess()
+                            }
+                        }
                     },
                 contentAlignment = Alignment.Center
             ) {

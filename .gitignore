@@ -13,3 +13,13 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Backend - No subir dependencias de Node.js
+backend/node_modules/
+backend/package-lock.json
+
+# Seguridad - Nunca subir fotos ni bases de datos
+*.jpg
+*.jpeg
+*.db
+*.sqlite

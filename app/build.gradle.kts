@@ -47,6 +47,27 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    // CameraX (Librerías estables 1.4.0)
+    val cameraxVersion = "1.4.0"
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+
+    // Google ML Kit
+    implementation("com.google.mlkit:face-detection:16.1.7")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+
+    // Guava (ListenableFuture para CameraX)
+    implementation("com.google.guava:guava:33.3.1-android")
+
+    // Networking / Retrofit para PostgreSQL Backend
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Lifecycle ViewModel Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

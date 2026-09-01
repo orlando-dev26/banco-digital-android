@@ -1,0 +1,56 @@
+# ============================================================
+# 🏦 BANCO DIGITAL - Docker Compose
+# ============================================================
+# Este archivo levanta 2 servicios:
+#   1. La base de datos PostgreSQL (donde se guardan los usuarios)
+#   2. El servidor API (el "puente" entre el celular y la BD)
+#
+# CÓMO USAR:
+#   Abrir terminal en esta carpeta (backend/) y ejecutar:
+#     docker-compose up
+#
+#   Para detener:
+#     docker-compose down
+# ============================================================
+
+services:
+
+  # ----- BASE DE DATOS POSTGRESQL -----
+  # Aquí se guardan todos los datos de los usuarios registrados.
+  # Usa el puerto 5433 para NO chocar con el PostgreSQL nativo de Windows (5432).
+  base-de-datos-postgres:
+    image: postgres:16-alpine
+    container_name: banco-digital-base-de-datos
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Orki-12-31
+      POSTGRES_DB: banco_digital_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - datos-banco-digital:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # ----- SERVIDOR API (Node.js) -----
+  # Este es el "puente" entre tu celular y la base de datos.
+  # Tu celular envía los datos aquí (puerto 3000), y este servidor
+  # los guarda en la base de datos PostgreSQL de arriba.
+  servidor-api:
+    build: .
+    container_name: banco-digital-servidor-api
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: base-de-datos-postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: Orki-12-31
+      DB_NAME: banco_digital_db
+    depends_on:
+      - base-de-datos-postgres
+    restart: unless-stopped
+
+# Los datos de la BD se guardan en un "volumen" para que NO se pierdan
+# aunque detengas los containers.
+volumes:
+  datos-banco-digital:
