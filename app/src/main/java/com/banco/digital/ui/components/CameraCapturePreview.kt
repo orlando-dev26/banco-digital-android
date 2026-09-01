@@ -69,6 +69,45 @@ fun DniCameraCapture(
     val primaryDarkText = Color(0xFF042F2C)
 
     if (capturedBitmap != null && capturedUriString != null) {
+        // Validación automática del DNI con ML Kit Text Recognition
+        var isValidatingDni by remember { mutableStateOf(true) }
+        var isDniValid by remember { mutableStateOf(false) }
+        var validationMessage by remember { mutableStateOf("Analizando documento...") }
+
+        LaunchedEffect(capturedUriString) {
+            isValidatingDni = true
+            val image = InputImage.fromBitmap(capturedBitmap!!, 0)
+            val recognizer = com.google.mlkit.vision.text.TextRecognition.getClient(
+                com.google.mlkit.vision.text.latin.TextRecognizerOptions.DEFAULT_OPTIONS
+            )
+            recognizer.process(image)
+                .addOnSuccessListener { visionText ->
+                    val textoCompleto = visionText.text.uppercase()
+                    // Palabras clave que indican que es un DNI peruano u otro documento de identidad
+                    val palabrasClave = listOf(
+                        "REPÚBLICA", "REPUBLICA", "PERÚ", "PERU",
+                        "DNI", "REGISTRO", "NACIONAL", "IDENTIFICACIÓN", "IDENTIFICACION",
+                        "NOMBRES", "APELLIDOS", "FECHA", "NACIMIENTO",
+                        "DOCUMENTO", "IDENTITY", "PASSPORT", "PASAPORTE",
+                        "CARNET", "EXTRANJERÍA", "EXTRANJERIA"
+                    )
+                    val coincidencias = palabrasClave.count { textoCompleto.contains(it) }
+                    isDniValid = coincidencias >= 2
+                    validationMessage = if (isDniValid) {
+                        "✅ Documento detectado correctamente"
+                    } else {
+                        "❌ No se detectó un documento de identidad válido. Por favor, vuelve a intentarlo con tu DNI."
+                    }
+                    isValidatingDni = false
+                }
+                .addOnFailureListener {
+                    // Si falla ML Kit, permitir continuar de todas formas
+                    isDniValid = true
+                    validationMessage = "✅ Foto capturada"
+                    isValidatingDni = false
+                }
+        }
+
         // Pantalla de Confirmación / Nitidez
         Column(
             modifier = Modifier
@@ -91,15 +130,50 @@ fun DniCameraCapture(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Mensaje de validación del DNI
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = if (isValidatingDni) Color(0xFF1E293B)
+                       else if (isDniValid) Color(0xFF064E3B)
+                       else Color(0xFF7F1D1D),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    if (isValidatingDni) {
+                        CircularProgressIndicator(
+                            color = Color(0xFF6EE7B7),
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Text(
+                        text = validationMessage,
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Previsualización de la foto capturada
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp)
+                    .height(240.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .border(2.dp, Color(0xFF10B981), RoundedCornerShape(16.dp)),
+                    .border(2.dp,
+                        if (isDniValid) Color(0xFF10B981) else Color(0xFFEF4444),
+                        RoundedCornerShape(16.dp)),
                 color = Color.Black
             ) {
                 androidx.compose.foundation.Image(
@@ -112,44 +186,73 @@ fun DniCameraCapture(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Reintentar
-                OutlinedButton(
-                    onClick = {
+            // Lógica de avance o reintento automático
+            LaunchedEffect(isDniValid, isValidatingDni) {
+                if (!isValidatingDni) {
+                    if (isDniValid) {
+                        kotlinx.coroutines.delay(1000) // Pausa de 1s para ver el éxito
+                        capturedUriString?.let { onPhotoCaptured(it) }
+                    } else {
+                        kotlinx.coroutines.delay(2500) // Pausa de 2.5s para leer el error
                         capturedBitmap = null
                         capturedUriString = null
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF64748B))
-                ) {
-                    Icon(Icons.Default.Refresh, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Reintentar", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
+            }
 
-                // Continuar
+            if (isValidatingDni) {
+                // Mientras valida
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Procesando imagen...", color = Color(0xFF94A3B8), fontSize = 15.sp)
+                }
+            } else if (!isDniValid) {
+                // Si es INVÁLIDO -> Muestra que va a reintentar automáticamente
                 Box(
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxWidth()
                         .height(56.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(brush = mintGradient)
-                        .clickable {
-                            capturedUriString?.let { onPhotoCaptured(it) }
-                        },
+                        .background(Color(0xFF450a0a)) // Fondo rojo muy oscuro
+                        .border(2.dp, Color(0xFFEF4444), RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Continuar", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = primaryDarkText)
+                        Icon(Icons.Default.Refresh, contentDescription = null, tint = Color(0xFFFCA5A5))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Icon(Icons.Default.Check, contentDescription = null, tint = primaryDarkText)
+                        Text(
+                            "Reintentando automáticamente...",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFCA5A5)
+                        )
+                    }
+                }
+            } else {
+                // Si es VÁLIDO -> Muestra que está avanzando automáticamente
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(brush = mintGradient),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "Continuando automáticamente...",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryDarkText
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        CircularProgressIndicator(
+                            color = primaryDarkText,
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
                     }
                 }
             }
@@ -208,8 +311,11 @@ fun DniCameraCapture(
                             object : ImageCapture.OnImageSavedCallback {
                                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                                     val bitmap = android.graphics.BitmapFactory.decodeFile(photoFile.absolutePath)
-                                    capturedBitmap = bitmap
-                                    capturedUriString = photoFile.absolutePath
+                                    // Usar el hilo principal para actualizar el estado de Jetpack Compose
+                                    ContextCompat.getMainExecutor(context).execute {
+                                        capturedBitmap = bitmap
+                                        capturedUriString = photoFile.absolutePath
+                                    }
                                 }
 
                                 override fun onError(exc: ImageCaptureException) {
@@ -577,7 +683,7 @@ fun LivenessStepBadge(label: String, isDone: Boolean, isActive: Boolean) {
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .background(bgColor)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 10.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -592,9 +698,11 @@ fun LivenessStepBadge(label: String, isDone: Boolean, isActive: Boolean) {
             }
             Text(
                 text = label,
-                fontSize = 11.sp,
+                fontSize = 10.sp,
                 fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
-                color = textColor
+                color = textColor,
+                maxLines = 1,
+                softWrap = false
             )
         }
     }

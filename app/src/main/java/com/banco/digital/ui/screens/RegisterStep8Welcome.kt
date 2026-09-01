@@ -109,7 +109,10 @@ fun Step8Bienvenida(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f, fill = false)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.AccountBalance,
                                 contentDescription = null,
@@ -119,11 +122,14 @@ fun Step8Bienvenida(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Cuenta Digital Ahorros",
-                                fontSize = 14.sp,
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827)
+                                color = Color(0xFF111827),
+                                maxLines = 1
                             )
                         }
+
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         Surface(
                             shape = CircleShape,
@@ -144,7 +150,8 @@ fun Step8Bienvenida(
                                     text = "ACTIVA",
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF064E3B)
+                                    color = Color(0xFF064E3B),
+                                    maxLines = 1
                                 )
                             }
                         }

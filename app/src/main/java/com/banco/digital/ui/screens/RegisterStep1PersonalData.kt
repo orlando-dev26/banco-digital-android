@@ -138,6 +138,7 @@ fun Step1DatosPersonales(
                     readOnly = true,
                     shape = RoundedCornerShape(16.dp),
                     colors = textFieldColors,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDocType) },
                     modifier = Modifier.menuAnchor()
                 )
                 ExposedDropdownMenu(
@@ -236,22 +237,71 @@ fun Step1DatosPersonales(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Celular
-        OutlinedTextField(
-            value = celular,
-            onValueChange = {
-                if (it.all { char -> char.isDigit() } && it.length <= 12) {
-                    onDataChange(nombreCompleto, tipoDocumento, numeroDocumento, fechaNacimiento, correo, it)
-                }
-            },
-            placeholder = { Text("Teléfono celular (ej: 987654321)", color = Color(0xFF94A3B8)) },
-            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = Color(0xFF64748B)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            singleLine = true,
-            shape = RoundedCornerShape(16.dp),
-            colors = textFieldColors,
-            modifier = Modifier.fillMaxWidth()
+        // Celular con código de país
+        var expandedCountryCode by remember { mutableStateOf(false) }
+        var selectedCountryCode by remember { mutableStateOf("🇵🇪 +51") }
+        val countryCodes = listOf(
+            "🇵🇪 +51",   // Perú
+            "🇨🇴 +57",   // Colombia
+            "🇲🇽 +52",   // México
+            "🇦🇷 +54",   // Argentina
+            "🇨🇱 +56",   // Chile
+            "🇪🇨 +593",  // Ecuador
+            "🇧🇴 +591",  // Bolivia
+            "🇧🇷 +55",   // Brasil
+            "🇪🇸 +34",   // España
+            "🇺🇸 +1"     // Estados Unidos
         )
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            ExposedDropdownMenuBox(
+                expanded = expandedCountryCode,
+                onExpandedChange = { expandedCountryCode = it },
+                modifier = Modifier.weight(0.40f)
+            ) {
+                OutlinedTextField(
+                    value = selectedCountryCode,
+                    onValueChange = {},
+                    readOnly = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = textFieldColors,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCountryCode) },
+                    modifier = Modifier.menuAnchor(),
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp)
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedCountryCode,
+                    onDismissRequest = { expandedCountryCode = false },
+                    modifier = Modifier.background(Color.White)
+                ) {
+                    countryCodes.forEach { code ->
+                        DropdownMenuItem(
+                            text = { Text(code, fontWeight = FontWeight.Medium) },
+                            onClick = {
+                                selectedCountryCode = code
+                                expandedCountryCode = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            OutlinedTextField(
+                value = celular,
+                onValueChange = {
+                    if (it.all { char -> char.isDigit() } && it.length <= 9) {
+                        onDataChange(nombreCompleto, tipoDocumento, numeroDocumento, fechaNacimiento, correo, it)
+                    }
+                },
+                placeholder = { Text("987654321", color = Color(0xFF94A3B8)) },
+                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = Color(0xFF64748B)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                colors = textFieldColors,
+                modifier = Modifier.weight(0.60f)
+            )
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -278,5 +328,8 @@ fun Step1DatosPersonales(
                 color = if (isStep1Valid) primaryDarkText else Color(0xFF94A3B8)
             )
         }
+
+        // Espaciado extra para que el teclado no tape el botón
+        Spacer(modifier = Modifier.height(120.dp))
     }
 }
