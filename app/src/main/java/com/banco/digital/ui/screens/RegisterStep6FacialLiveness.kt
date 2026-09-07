@@ -24,14 +24,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.banco.digital.ui.components.FaceLivenessCameraCapture
-import com.banco.digital.ui.viewmodel.LivenessStep
+
+import com.banco.digital.ui.viewmodel.KycState
 
 @Composable
 fun Step6EscaneoFacial(
-    livenessStep: LivenessStep,
-    feedbackText: String,
-    onFaceDetected: (isCentered: Boolean, leftEyeOpen: Float?, rightEyeOpen: Float?, smiling: Float?) -> Unit,
-    onSelfieCaptured: (String) -> Unit,
+    kycLivenessState: KycState,
+    onFramesCaptured: (List<ByteArray>) -> Unit,
+    onRetry: () -> Unit,
     onContinue: () -> Unit
 ) {
     val context = LocalContext.current
@@ -114,21 +114,82 @@ fun Step6EscaneoFacial(
             }
         }
     } else {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(540.dp)
-                .clip(RoundedCornerShape(24.dp))
-        ) {
-            FaceLivenessCameraCapture(
-                livenessStep = livenessStep,
-                feedbackText = feedbackText,
-                onFaceDetected = onFaceDetected,
-                onLivenessCompleted = { uri ->
-                    onSelfieCaptured(uri)
-                    onContinue()
+        when (kycLivenessState) {
+            is KycState.Loading -> {
+                Column(
+                    modifier = Modifier.fillMaxWidth().height(400.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF10B981))
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        "Enviando video seguro...",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF0F172A)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Analizando con Inteligencia Artificial.\nEsto tomará un momento.",
+                        fontSize = 14.sp,
+                        color = Color(0xFF64748B),
+                        textAlign = TextAlign.Center
+                    )
                 }
-            )
+            }
+            is KycState.Error -> {
+                Column(
+                    modifier = Modifier.fillMaxWidth().height(400.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        "Verificación Fallida",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFEF4444)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        (kycLivenessState as KycState.Error).message,
+                        fontSize = 14.sp,
+                        color = Color(0xFF64748B),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .height(56.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(brush = mintGradient)
+                            .clickable { onRetry() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Reintentar",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryDarkText
+                        )
+                    }
+                }
+            }
+            else -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(540.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                ) {
+                    FaceLivenessCameraCapture(
+                        onFramesCaptured = { frames ->
+                            onFramesCaptured(frames)
+                        }
+                    )
+                }
+            }
         }
     }
 }

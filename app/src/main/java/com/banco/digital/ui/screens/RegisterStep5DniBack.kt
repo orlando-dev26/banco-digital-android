@@ -24,12 +24,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.banco.digital.ui.components.DniCameraCapture
+import com.banco.digital.ui.viewmodel.KycState
 
 @Composable
 fun Step5DniReverso(
     fotoDniReversoUri: String,
+    kycDniState: KycState,
     onPhotoCaptured: (String) -> Unit,
-    onContinue: () -> Unit
+    onContinue: (String) -> Unit
 ) {
     val context = LocalContext.current
     var hasCameraPermission by remember {
@@ -121,8 +123,36 @@ fun Step5DniReverso(
                 tituloGuia = "Coloca el REVERSO de tu DNI dentro del marco",
                 onPhotoCaptured = { uri ->
                     onPhotoCaptured(uri)
-                    onContinue()
+                    onContinue(uri)
                 }
+            )
+
+            // Overlay de carga
+            if (kycDniState is KycState.Loading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0x88000000)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = Color(0xFF10B981))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Validando documento con IA...", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+        
+        // Mensaje de Error
+        if (kycDniState is KycState.Error) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = kycDniState.message,
+                color = Color.Red,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

@@ -1,4 +1,4 @@
-*.iml
+﻿*.iml
 .gradle
 /local.properties
 /.idea/caches
@@ -23,3 +23,8 @@ backend/package-lock.json
 *.jpeg
 *.db
 *.sqlite
+.env
+
+**/.env
+
+

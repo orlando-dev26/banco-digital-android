@@ -55,12 +55,12 @@ fun RegisterScreen(
 
     val stepLabels = listOf(
         "Datos",
+        "Contacto",
         "Clave",
         "Legal",
         "DNI Fr.",
         "DNI Rev.",
-        "Facial",
-        "Validar",
+        "FaceID",
         "Listo"
     )
 
@@ -159,20 +159,33 @@ fun RegisterScreen(
             when (step) {
                 // Paso 1: Datos Personales
                 1 -> Step1DatosPersonales(
-                    nombreCompleto = uiState.nombreCompleto,
+                    nombre = uiState.nombre,
+                    apellidos = uiState.apellidos,
                     tipoDocumento = uiState.tipoDocumento,
                     numeroDocumento = uiState.numeroDocumento,
                     fechaNacimiento = uiState.fechaNacimiento,
                     correo = uiState.correo,
                     celular = uiState.celular,
-                    onDataChange = { nombre, tipoDoc, numDoc, fechaNac, correo, celular ->
-                        viewModel.updatePersonalData(nombre, tipoDoc, numDoc, fechaNac, correo, celular)
+                    onDataChange = { nombre, apellidos, tipoDoc, numDoc, fechaNac, correo, celular ->
+                        viewModel.updatePersonalData(
+                            nombre, apellidos, tipoDoc, numDoc, fechaNac, correo, celular
+                        )
                     },
                     onContinue = { viewModel.nextStep() }
                 )
 
-                // Paso 2: Crear Contraseña (Vista dedicada con checklist de seguridad)
-                2 -> Step2CrearPassword(
+                // Paso 2: Datos de Contacto
+                2 -> Step2DatosContacto(
+                    correo = uiState.correo,
+                    celular = uiState.celular,
+                    onDataChange = { correo, celular ->
+                        viewModel.updateContactData(correo, celular)
+                    },
+                    onContinue = { viewModel.nextStep() }
+                )
+
+                // Paso 3: Crear Contraseña
+                3 -> Step2CrearPassword(
                     password = uiState.password,
                     confirmPassword = uiState.confirmPassword,
                     onPasswordChange = { pass, confirm ->
@@ -181,8 +194,8 @@ fun RegisterScreen(
                     onContinue = { viewModel.nextStep() }
                 )
 
-                // Paso 3: Términos y Condiciones
-                3 -> Step3TerminosYCondiciones(
+                // Paso 4: Términos y Condiciones
+                4 -> Step3TerminosYCondiciones(
                     aceptoTerminos = uiState.aceptoTerminos,
                     aceptoTratamientoDatos = uiState.aceptoTratamientoDatos,
                     onTerminosChange = { terminos, datos ->
@@ -191,55 +204,60 @@ fun RegisterScreen(
                     onContinue = { viewModel.nextStep() }
                 )
 
-                // Paso 4: Captura DNI Frontal
-                4 -> Step4DniFrontal(
+                // Paso 5: Captura DNI Frontal
+                5 -> Step4DniFrontal(
                     fotoDniFrontalUri = uiState.fotoDniFrontalUri,
+                    kycDniState = uiState.kycDniState,
                     onPhotoCaptured = { uri -> viewModel.setFotoDniFrontal(uri) },
-                    onContinue = { viewModel.nextStep() }
+                    onContinue = { uri -> viewModel.validarDniFrontal(uri) }
                 )
 
-                // Paso 5: Captura DNI Reverso
-                5 -> Step5DniReverso(
+                // Paso 6: Captura DNI Reverso
+                6 -> Step5DniReverso(
                     fotoDniReversoUri = uiState.fotoDniReversoUri,
+                    kycDniState = uiState.kycDniState,
                     onPhotoCaptured = { uri -> viewModel.setFotoDniReverso(uri) },
-                    onContinue = { viewModel.nextStep() }
+                    onContinue = { uri -> viewModel.validarDniReverso(uri) }
                 )
 
-                // Paso 6: Escaneo Facial y Liveness Check
-                6 -> Step6EscaneoFacial(
-                    livenessStep = uiState.livenessStep,
-                    feedbackText = uiState.livenessFeedback,
-                    onFaceDetected = { isCentered, leftEye, rightEye, smile ->
-                        viewModel.onFaceDetected(isCentered, leftEye, rightEye, smile)
+                // Paso 7: Escaneo Facial
+                7 -> Step6EscaneoFacial(
+                    kycLivenessState = uiState.kycLivenessState,
+                    onFramesCaptured = { frames -> 
+                        frames.forEach { viewModel.addLivenessFrame(it) }
+                        viewModel.enviarFramesLiveness()
                     },
-                    onSelfieCaptured = { uri -> viewModel.setFotoSelfie(uri) },
+                    onRetry = { viewModel.resetLivenessState() },
                     onContinue = { viewModel.nextStep() }
                 )
 
-                // Paso 7: Verificando Identidad
-                7 -> Step7VerificandoIdentidad()
-
-                // Paso 8: Bienvenida y Activación de Cuenta
-                8 -> Step8Bienvenida(
-                    usuario = uiState.usuarioRegistrado,
-                    onFinishRegistration = {
-                        val user = uiState.usuarioRegistrado
-                        if (user != null) {
-                            onRegisterSuccess(
-                                user.tipoDocumento,
-                                user.numeroDocumento,
-                                user.nombreCompleto,
-                                "",
-                                user.correo,
-                                user.celular,
-                                user.fechaNacimiento,
-                                user.passwordHash
-                            )
-                        } else {
-                            onNavigateBack()
-                        }
+                // Paso 8: Verificando / Bienvenida
+                8 -> {
+                    if (uiState.isVerifying) {
+                        Step7VerificandoIdentidad()
+                    } else if (uiState.verificationSuccess) {
+                        Step8Bienvenida(
+                            usuario = uiState.usuarioRegistrado,
+                            onFinishRegistration = {
+                                val user = uiState.usuarioRegistrado
+                                if (user != null) {
+                                    onRegisterSuccess(
+                                        user.tipoDocumento,
+                                        user.numeroDocumento,
+                                        user.nombreCompleto,
+                                        "",
+                                        user.correo,
+                                        user.celular,
+                                        user.fechaNacimiento,
+                                        user.passwordHash
+                                    )
+                                } else {
+                                    onNavigateBack()
+                                }
+                            }
+                        )
                     }
-                )
+                }
             }
         }
 

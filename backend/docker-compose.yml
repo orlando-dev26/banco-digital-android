@@ -23,7 +23,7 @@ services:
     container_name: banco-digital-base-de-datos
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Orki-12-31
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres-banco}
       POSTGRES_DB: banco_digital_db
     ports:
       - "5433:5432"
@@ -44,10 +44,20 @@ services:
       DB_HOST: base-de-datos-postgres
       DB_PORT: 5432
       DB_USER: postgres
-      DB_PASSWORD: Orki-12-31
+      DB_PASSWORD: ${DB_PASSWORD:-postgres-banco}
       DB_NAME: banco_digital_db
     depends_on:
       - base-de-datos-postgres
+    restart: unless-stopped
+
+  # ----- SERVIDOR KYC IA (Python/FastAPI) -----
+  # Microservicio para validación biométrica con Inteligencia Artificial.
+  # Procesa fotos de DNI y liveness check.
+  servidor-kyc-ia:
+    build: ./kyc
+    container_name: banco-digital-servidor-kyc-ia
+    ports:
+      - "8000:8000"
     restart: unless-stopped
 
 # Los datos de la BD se guardan en un "volumen" para que NO se pierdan

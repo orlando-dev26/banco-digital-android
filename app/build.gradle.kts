@@ -53,9 +53,8 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
 
-    // Google ML Kit
-    implementation("com.google.mlkit:face-detection:16.1.7")
-    implementation("com.google.mlkit:text-recognition:16.0.1")
+    // ML Kit (Solo para progreso interactivo del Face ID en UI)
+    implementation("com.google.mlkit:face-detection:16.1.6")
 
     // Guava (ListenableFuture para CameraX)
     implementation("com.google.guava:guava:33.3.1-android")
@@ -76,3 +75,4 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
+
