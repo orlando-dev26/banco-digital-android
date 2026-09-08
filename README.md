@@ -71,6 +71,22 @@ Abre tu navegador y visita:
 
 ---
 
+## 🐧 Ejecución Nativa en Linux (Recomendado)
+
+Dado que Docker fue diseñado originalmente para Linux, ejecutar este backend en tu partición o sistema operativo Linux (Ubuntu, Fedora, Arch) ofrece **ventajas masivas de rendimiento** en comparación con Windows/WSL2:
+
+1. **Cero consumo extra de RAM:** No existe la máquina virtual `VmmemWSL`. Docker correrá directamente en el Kernel de tu computadora, liberando los 3 GB - 5 GB de memoria que Windows reserva inútilmente.
+2. **Liberación Instantánea de Caché:** Cuando la IA termine de procesar un DNI, la RAM regresará automáticamente a tu sistema sin quedarse "atascada" como en WSL.
+3. **Aceleración por GPU más sencilla:** Habilitar tu tarjeta gráfica (NVIDIA) para el modelo biométrico facial toma solo unos clics en Linux, permitiendo validaciones en milisegundos.
+
+**Pasos para Linux:**
+1. Instala `docker` y `docker-compose` a nivel de sistema (`sudo apt install docker-compose`).
+2. Clona el repositorio y navega al backend: `cd backend`.
+3. Ejecuta `sudo docker-compose up --build -d`.
+4. (Opcional) Si en el futuro reactivamos **DeepFace/MTCNN**, tu sistema Linux soportará el peso de las librerías sin estrangular el procesador, aprovechando el acceso nativo a tu hardware.
+
+---
+
 ## 📊 Privacidad y Manejo de Datos (Importante)
 
 Para garantizar la seguridad de los usuarios, **no se guarda ninguna foto en el disco ni en la base de datos**.
