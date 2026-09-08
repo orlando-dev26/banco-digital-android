@@ -139,3 +139,73 @@ DigitalBankApp/
 - **Python / FastAPI** (Microservicio de Inteligencia Artificial)
 - **MediaPipe / DeepFace / EasyOCR** (Validación KYC, FaceID y Liveness check en RAM)
 - **Docker** (Orquestación de microservicios)
+## 📂 Estructura del Proyecto
+
+```text
+DigitalBankApp/
+|-- app/
+|   |-- src/main/java/com/banco/digital/
+|   |   |-- MainActivity.kt             <-- Punto de entrada principal
+|   |   |
+|   |   |-- data/                       <-- Capa de Datos (Data Layer)
+|   |   |   |-- api/
+|   |   |   |   |-- KycApiService.kt       <-- Endpoints para servicios de validacion KYC (IA)
+|   |   |   |   |-- RegisterApiService.kt  <-- Endpoints para el registro de usuarios
+|   |   |   |-- local/
+|   |   |   |   |-- DatabaseHelper.kt      <-- Gestor de persistencia local temporal
+|   |   |   |-- model/
+|   |   |   |   |-- UsuarioRegistro.kt     <-- Modelos de datos (Data Classes)
+|   |   |   |-- repository/
+|   |   |       |-- RegisterRepository.kt  <-- Patron Repositorio centralizando llamadas API y Local
+|   |   |
+|   |   |-- ui/                         <-- Capa de Interfaz de Usuario (UI Layer)
+|   |   |   |-- components/
+|   |   |   |   |-- CameraCapturePreview.kt <-- Componente reutilizable para abrir CameraX
+|   |   |   |-- screens/                  <-- Vistas completas de la aplicacion
+|   |   |   |   |-- BiometricSetupScreen.kt
+|   |   |   |   |-- CardsScreen.kt
+|   |   |   |   |-- HomeScreen.kt
+|   |   |   |   |-- LoginScreen.kt
+|   |   |   |   |-- MainContainerScreen.kt
+|   |   |   |   |-- NotificationsScreen.kt
+|   |   |   |   |-- ProfileScreen.kt
+|   |   |   |   |-- RegisterScreen.kt          <-- Contenedor principal del flujo de registro
+|   |   |   |   |-- RegisterStep1PersonalData.kt
+|   |   |   |   |-- RegisterStep2Contact.kt
+|   |   |   |   |-- RegisterStep2Password.kt
+|   |   |   |   |-- RegisterStep3Terms.kt
+|   |   |   |   |-- RegisterStep4DniFront.kt
+|   |   |   |   |-- RegisterStep5DniBack.kt
+|   |   |   |   |-- RegisterStep6FacialLiveness.kt
+|   |   |   |   |-- RegisterStep7Verifying.kt
+|   |   |   |   |-- RegisterStep8Welcome.kt
+|   |   |   |   |-- TransactionDetailScreen.kt
+|   |   |   |   |-- TransferHoldScreen.kt
+|   |   |   |   |-- TransferResultScreen.kt
+|   |   |   |   |-- TransferScreen.kt
+|   |   |   |   |-- VerifySmsScreen.kt
+|   |   |   |-- theme/                    <-- Configuracion visual global
+|   |   |   |   |-- Color.kt               <-- Paleta de colores del banco
+|   |   |   |   |-- Theme.kt               <-- Temas claro/oscuro
+|   |   |   |   |-- Type.kt                <-- Tipografias (Typography)
+|   |   |
+|   |   |-- viewmodel/                  <-- Capa de Logica de Presentacion
+|   |       |-- RegisterViewModel.kt       <-- Estado y logica del flujo completo de registro
+|   |
+|   |-- build.gradle.kts                <-- Configuracion de dependencias del modulo
+|-- build.gradle.kts                    <-- Configuracion del proyecto raiz
+```
+
+## 📱 Tecnologias utilizadas
+
+- **Android Studio Ladybug** (o superior)
+- **Kotlin**
+- **Jetpack Compose** (Material Design 3)
+- **Java 11** (JavaVersion.VERSION_11)
+- **Android SDK** (minSdk 26, targetSdk 37)
+- **Jetpack Navigation Compose** (v2.7.7)
+- **CameraX** (v1.4.0)
+- **Retrofit** (v2.11.0) con OkHttp Logging Interceptor (v4.12.0)
+- **Google ML Kit Face Detection** (v16.1.6)
+- **AndroidX Biometric** (v1.1.0)
+- **ViewModel Compose** (v2.8.7) - Arquitectura MVVM
