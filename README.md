@@ -60,9 +60,9 @@ Esto levantará 3 contenedores:
 
 ### Paso 4: Verificar que el backend funciona
 Abre tu navegador y visita:
-- **http://localhost:3000/health** → Estado de API Node.js
-- **http://localhost:8000/health** → Estado de KYC IA FastAPI
-- **http://localhost:3000/api/users** → Lista de usuarios en base de datos
+- **http://localhost:3000/health** -> Estado de API Node.js
+- **http://localhost:8000/health** -> Estado de KYC IA FastAPI
+- **http://localhost:3000/api/users** -> Lista de usuarios en base de datos
 
 ### Paso 5: Ejecutar en tu celular
 1. Abre el proyecto en Android Studio.
@@ -115,31 +115,7 @@ La tabla con los registros se llama: `usuarios_registro`
 
 ## 📂 Estructura del Proyecto
 
-```
-DigitalBankApp/
-├── app/                          ← Código de la app Android (Jetpack Compose)
-├── backend/                      ← Docker compose y servidores
-│   ├── .env                      ← Contraseñas (ignorado en git)
-│   ├── server.js                 ← Servidor Node.js (API a PostgreSQL)
-│   └── kyc/
-│       ├── main.py               ← Servidor FastAPI (Python) para IA Biométrica
-│       └── requirements.txt      ← Librerías Python (DeepFace, EasyOCR, MediaPipe)
-└── README.md                     
-```
-
----
-
-## 📱 Tecnologías utilizadas
-
-- **Kotlin** + **Jetpack Compose**
-- **CameraX** (Captura de DNI e imágenes)
-- **Retrofit** + **OkHttp** (Conexión API)
-- **Node.js** + **Express** (API Gateway)
-- **PostgreSQL 16** (Base de datos relacional)
-- **Python / FastAPI** (Microservicio de Inteligencia Artificial)
-- **MediaPipe / DeepFace / EasyOCR** (Validación KYC, FaceID y Liveness check en RAM)
-- **Docker** (Orquestación de microservicios)
-## 📂 Estructura del Proyecto
+El código fuente de la aplicación móvil se encuentra organizado bajo el patrón de arquitectura MVVM y Clean Architecture simplificada. A continuación, el detalle exacto de cada directorio y componente UI que hemos creado en Android Studio:
 
 ```text
 DigitalBankApp/
@@ -196,7 +172,9 @@ DigitalBankApp/
 |-- build.gradle.kts                    <-- Configuracion del proyecto raiz
 ```
 
-## 📱 Tecnologias utilizadas
+---
+
+## 📱 Tecnologías utilizadas
 
 - **Android Studio Ladybug** (o superior)
 - **Kotlin**
