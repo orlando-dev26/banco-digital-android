@@ -55,6 +55,7 @@ data class RegisterUiState(
 
     val kycDniState: KycState = KycState.Idle,
     val dniFaceBase64: String = "",
+    val ocrMatchResult: Boolean? = null, // null = no verificado, true = coinciden, false = no coinciden
 
     // Paso 6: KYC Facial / Liveness
     val fotoSelfieUri: String = "",
@@ -160,9 +161,13 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
         _uiState.update { it.copy(fotoDniReversoUri = uri) }
     }
 
+    fun resetOcrMatchResult() {
+        _uiState.update { it.copy(ocrMatchResult = null) }
+    }
+
     fun validarDniFrontal(uri: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(fotoDniFrontalUri = uri, kycDniState = KycState.Loading) }
+            _uiState.update { it.copy(fotoDniFrontalUri = uri, kycDniState = KycState.Loading, ocrMatchResult = null) }
 
             try {
                 val file = File(Uri.parse(uri).path ?: "")
@@ -174,19 +179,32 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                 val reqFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
                 val part = MultipartBody.Part.createFormData("imagen", file.name, reqFile)
 
+                // Pasar los datos del usuario para el cruce OCR usando form-data explícito
+                val currentState = _uiState.value
+                val nombrePart = MultipartBody.Part.createFormData("nombre_esperado", currentState.nombre)
+                val apellidosPart = MultipartBody.Part.createFormData("apellidos_esperados", currentState.apellidos)
+                val dniPart = MultipartBody.Part.createFormData("dni_esperado", currentState.numeroDocumento)
+
                 var success = false
                 for (url in kycEndpoints) {
                     try {
                         val api = KycApiService.create(url)
-                        val response = api.validarDniIndividual(part)
+                        val response = api.validarDniIndividual(part, nombrePart, apellidosPart, dniPart)
                         
                         if (response.isSuccessful) {
                             val body = response.body()
                             if (body != null && body.is_valid_document) {
-                                _uiState.update { it.copy(kycDniState = KycState.Success("DNI Frontal Validado")) }
+                                // Guardamos el rostro extraido en Base64 (si vino)
+                                val base64Face = body.face_image_base64 ?: ""
+                                _uiState.update { 
+                                    it.copy(
+                                        kycDniState = KycState.Success("DNI Frontal Validado"),
+                                        ocrMatchResult = body.datos_coinciden,
+                                        dniFaceBase64 = base64Face
+                                    ) 
+                                }
                                 success = true
-                                nextStep() // Pasar al reverso
-                                break
+                                break // No avanzamos de paso automáticamente, esperamos que el usuario cierre el popup
                             } else {
                                 _uiState.update { it.copy(kycDniState = KycState.Error(body?.message ?: "Documento no válido")) }
                                 success = true
@@ -227,7 +245,6 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                             if (body != null && body.is_valid_document) {
                                 _uiState.update { 
                                     it.copy(
-                                        dniFaceBase64 = body.face_image_base64 ?: "",
                                         kycDniState = KycState.Success("DNI Reverso Validado")
                                     )
                                 }

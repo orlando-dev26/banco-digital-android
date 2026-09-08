@@ -30,8 +30,11 @@ import com.banco.digital.ui.viewmodel.KycState
 fun Step4DniFrontal(
     fotoDniFrontalUri: String,
     kycDniState: KycState,
+    ocrMatchResult: Boolean?,
     onPhotoCaptured: (String) -> Unit,
-    onContinue: (String) -> Unit
+    onContinue: (String) -> Unit,
+    onDialogDismiss: () -> Unit,
+    onDialogProceed: () -> Unit
 ) {
     val context = LocalContext.current
     var hasCameraPermission by remember {
@@ -153,6 +156,41 @@ fun Step4DniFrontal(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        // Popup OCR Result
+        if (kycDniState is KycState.Success && ocrMatchResult != null) {
+            AlertDialog(
+                onDismissRequest = onDialogDismiss,
+                title = {
+                    Text(
+                        text = if (ocrMatchResult) "Validación Exitosa" else "Advertencia de Datos",
+                        fontWeight = FontWeight.Bold,
+                        color = if (ocrMatchResult) Color(0xFF059669) else Color(0xFFD97706)
+                    )
+                },
+                text = {
+                    Text(
+                        text = if (ocrMatchResult) {
+                            "Los datos extraídos de tu DNI físico mediante Inteligencia Artificial coinciden perfectamente con tu registro manual."
+                        } else {
+                            "No pudimos validar tu nombre o DNI claramente en la foto. Asegúrate de que los datos escritos en el Paso 1 sean correctos o intenta tomar una foto con mejor luz."
+                        }
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = onDialogProceed) {
+                        Text(if (ocrMatchResult) "Continuar" else "Continuar de todos modos")
+                    }
+                },
+                dismissButton = {
+                    if (!ocrMatchResult) {
+                        TextButton(onClick = onDialogDismiss) {
+                            Text("Reintentar Foto")
+                        }
+                    }
+                }
             )
         }
     }

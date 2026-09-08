@@ -10,6 +10,7 @@ import android.graphics.YuvImage
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
+import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.camera.core.*
@@ -200,8 +201,11 @@ fun DniCameraCapture(
                         val preview = Preview.Builder().build().also {
                             it.surfaceProvider = previewView.surfaceProvider
                         }
+                        
+                        // Añadir auto-focus continuo
                         val capture = ImageCapture.Builder()
                             .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+                            .setFlashMode(ImageCapture.FLASH_MODE_AUTO)
                             .build()
                         imageCapture = capture
 
@@ -221,7 +225,24 @@ fun DniCameraCapture(
             // Overlay Canvas Rectangular DNI con animación de escaneo
             DniOverlayCanvas(tituloGuia = tituloGuia)
 
-            // Botones inferiores (Galería y Disparo)
+            // Launcher para Cámara Nativa del Celular
+            var tempPhotoPath by remember { mutableStateOf<String?>(null) }
+            var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+            val nativeCameraLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.TakePicture()
+            ) { success ->
+                if (success && tempPhotoPath != null) {
+                    // La cámara nativa ya guardó la foto en tempPhotoPath
+                    val file = File(tempPhotoPath!!)
+                    if (file.exists()) {
+                        val bitmap = android.graphics.BitmapFactory.decodeFile(file.absolutePath)
+                        capturedBitmap = bitmap
+                        capturedUriString = file.absolutePath
+                    }
+                }
+            }
+
+            // Botones inferiores (Galería y Cámara Nativa)
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -233,46 +254,33 @@ fun DniCameraCapture(
                 // Botón Galería
                 IconButton(
                     onClick = { galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                    modifier = Modifier.size(56.dp).background(Color(0x80000000), CircleShape)
+                    modifier = Modifier.size(64.dp).background(Color(0x80000000), CircleShape)
                 ) {
-                    Icon(Icons.Default.PhotoLibrary, contentDescription = "Galería", tint = Color.White)
+                    Icon(Icons.Default.PhotoLibrary, contentDescription = "Galería", tint = Color.White, modifier = Modifier.size(32.dp))
                 }
 
-                // Botón de Disparo
+                // Botón Cámara Nativa (Reemplaza al defectuoso CameraX)
                 FloatingActionButton(
-                    onClick = {
-                        val capture = imageCapture ?: return@FloatingActionButton
-                        val executor = Executors.newSingleThreadExecutor()
-                        val photoFile = File(context.cacheDir, "dni_${System.currentTimeMillis()}.jpg")
-                        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-                        capture.takePicture(
-                            outputOptions,
-                            executor,
-                            object : ImageCapture.OnImageSavedCallback {
-                                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                    val bitmap = android.graphics.BitmapFactory.decodeFile(photoFile.absolutePath)
-                                    ContextCompat.getMainExecutor(context).execute {
-                                        capturedBitmap = bitmap
-                                        capturedUriString = photoFile.absolutePath
-                                    }
-                                }
-
-                                override fun onError(exc: ImageCaptureException) {
-                                    Log.e("DniCamera", "Error al capturar foto", exc)
-                                }
-                            }
+                    onClick = { 
+                        val photoFile = File(context.cacheDir, "dni_native_${System.currentTimeMillis()}.jpg")
+                        val uri = androidx.core.content.FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.fileprovider",
+                            photoFile
                         )
+                        tempPhotoPath = photoFile.absolutePath
+                        tempPhotoUri = uri
+                        nativeCameraLauncher.launch(uri)
                     },
                     containerColor = Color(0xFF10B981),
                     contentColor = Color.White,
                     shape = CircleShape,
-                    modifier = Modifier.size(72.dp)
+                    modifier = Modifier.size(80.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "Tomar Foto",
-                        modifier = Modifier.size(36.dp)
+                        contentDescription = "Cámara Nativa",
+                        modifier = Modifier.size(40.dp)
                     )
                 }
             }
@@ -385,10 +393,11 @@ fun FaceLivenessCameraCapture(
         animationSpec = tween(1000) // Animación fluida de 1 segundo
     )
     
-    // Estados de movimiento
+    // Estados de movimiento (Liveness estricto)
     var lookedLeft by remember { mutableStateOf(false) }
     var lookedRight by remember { mutableStateOf(false) }
     var lookedUp by remember { mutableStateOf(false) }
+    var lookedDown by remember { mutableStateOf(false) }
 
     val capturedFrames = remember { mutableListOf<ByteArray>() }
     var frameTimer: Long = 0
@@ -426,10 +435,10 @@ fun FaceLivenessCameraCapture(
                     imageAnalysis.setAnalyzer(executor) { imageProxy ->
                         val mediaImage = imageProxy.image
                         
-                        // Guardar 1 frame cada 200ms para el backend mientras graba
+                        // Guardar 1 frame cada 150ms para el backend (más rápido para más ángulos)
                         if (isRecording) {
                             val currentTime = System.currentTimeMillis()
-                            if (currentTime - frameTimer >= 200) {
+                            if (currentTime - frameTimer >= 150) {
                                 frameTimer = currentTime
                                 try {
                                     val yBuffer = imageProxy.planes[0].buffer
@@ -458,7 +467,7 @@ fun FaceLivenessCameraCapture(
                             }
                         }
 
-                        // Análisis de rostro (Interactividad invisible)
+                        // Análisis de rostro (Interactividad estricta)
                         if (mediaImage != null && isRecording) {
                             val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
                             detector.process(image)
@@ -468,13 +477,15 @@ fun FaceLivenessCameraCapture(
                                         val yaw = face.headEulerAngleY // Rotación Izquierda/Derecha
                                         val pitch = face.headEulerAngleX // Rotación Arriba/Abajo
                                         
-                                        if (yaw < -15f) lookedLeft = true
-                                        if (yaw > 15f) lookedRight = true
-                                        if (pitch > 10f) lookedUp = true
+                                        // Ángulos más estrictos
+                                        if (yaw < -25f) lookedLeft = true
+                                        if (yaw > 25f) lookedRight = true
+                                        if (pitch > 15f) lookedUp = true
+                                        if (pitch < -10f) lookedDown = true
                                         
-                                        // Actualizar barra de progreso según los 3 movimientos clave
-                                        val completedSteps = listOf(lookedLeft, lookedRight, lookedUp).count { it }
-                                        recordingProgress = completedSteps / 3f
+                                        // Actualizar barra de progreso según los 4 movimientos clave
+                                        val completedSteps = listOf(lookedLeft, lookedRight, lookedUp, lookedDown).count { it }
+                                        recordingProgress = completedSteps / 4f
 
                                         // Si completó los movimientos, enviar al servidor
                                         if (recordingProgress >= 1f) {
@@ -532,6 +543,7 @@ fun FaceLivenessCameraCapture(
                         lookedLeft = false
                         lookedRight = false
                         lookedUp = false
+                        lookedDown = false
                         recordingProgress = 0f
                     },
                 contentAlignment = Alignment.Center

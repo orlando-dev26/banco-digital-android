@@ -53,6 +53,14 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    androidx.activity.compose.BackHandler(enabled = true) {
+        if (uiState.currentStep > 1) {
+            viewModel.previousStep()
+        } else {
+            onNavigateBack()
+        }
+    }
+
     val stepLabels = listOf(
         "Datos",
         "Contacto",
@@ -208,8 +216,14 @@ fun RegisterScreen(
                 5 -> Step4DniFrontal(
                     fotoDniFrontalUri = uiState.fotoDniFrontalUri,
                     kycDniState = uiState.kycDniState,
+                    ocrMatchResult = uiState.ocrMatchResult,
                     onPhotoCaptured = { uri -> viewModel.setFotoDniFrontal(uri) },
-                    onContinue = { uri -> viewModel.validarDniFrontal(uri) }
+                    onContinue = { uri -> viewModel.validarDniFrontal(uri) },
+                    onDialogDismiss = { viewModel.resetOcrMatchResult() },
+                    onDialogProceed = { 
+                        viewModel.resetOcrMatchResult()
+                        viewModel.nextStep()
+                    }
                 )
 
                 // Paso 6: Captura DNI Reverso

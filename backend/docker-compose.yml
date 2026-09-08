@@ -58,6 +58,8 @@ services:
     container_name: banco-digital-servidor-kyc-ia
     ports:
       - "8000:8000"
+    volumes:
+      - ./kyc:/app
     restart: unless-stopped
 
 # Los datos de la BD se guardan en un "volumen" para que NO se pierdan

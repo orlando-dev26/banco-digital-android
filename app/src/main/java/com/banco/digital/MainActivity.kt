@@ -177,6 +177,10 @@ class MainActivity : FragmentActivity() {
             .setTitle("Desbloqueo de Banca Digital")
             .setSubtitle("Usa tu Face ID o Huella Digital para ingresar")
             .setNegativeButtonText("Cancelar")
+            .setAllowedAuthenticators(
+                androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or 
+                androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+            )
             .build()
 
         biometricPrompt.authenticate(promptInfo)

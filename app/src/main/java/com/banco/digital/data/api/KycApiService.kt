@@ -21,7 +21,10 @@ interface KycApiService {
     @Multipart
     @POST("api/kyc/dni-single")
     suspend fun validarDniIndividual(
-        @Part imagen: MultipartBody.Part
+        @Part imagen: MultipartBody.Part,
+        @Part nombreEsperado: MultipartBody.Part? = null,
+        @Part apellidosEsperados: MultipartBody.Part? = null,
+        @Part dniEsperado: MultipartBody.Part? = null
     ): Response<KycDniResponse>
 
     @Multipart
@@ -59,6 +62,7 @@ data class KycDniResponse(
     val extracted_text: String?,
     val face_cropped: Boolean,
     val face_image_base64: String?,
+    val datos_coinciden: Boolean = false,
     val message: String?
 )
 

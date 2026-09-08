@@ -8,3 +8,4 @@ easyocr==1.7.2
 numpy==1.26.4
 Pillow==10.4.0
 tf-keras==2.16.0
+mtcnn==0.1.1
