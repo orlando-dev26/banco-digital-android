@@ -1,4 +1,4 @@
-package com.banco.digital.ui.screens
+﻿package com.banco.digital.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -69,7 +69,7 @@ fun Step3TerminosYCondiciones(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Tus datos biométricos y fotos de documento serán procesados de forma encriptada bajo estándares bancarios internacionales para prevenir fraudes e identificar tu titularidad.",
+                        text = "Tus datos de biometría facial serán procesados de forma encriptada bajo estándares bancarios internacionales para prevenir fraudes mediante la validación de prueba de vida (Liveness).",
                         fontSize = 13.sp,
                         color = Color(0xFF047857),
                         lineHeight = 19.sp
@@ -177,7 +177,7 @@ fun Step3TerminosYCondiciones(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Continuar a Captura de DNI",
+                text = "Continuar a Biometría Facial",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (isStep3Valid) primaryDarkText else Color(0xFF94A3B8)

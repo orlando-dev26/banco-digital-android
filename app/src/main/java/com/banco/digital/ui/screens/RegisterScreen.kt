@@ -66,8 +66,6 @@ fun RegisterScreen(
         "Contacto",
         "Clave",
         "Legal",
-        "DNI Fr.",
-        "DNI Rev.",
         "FaceID",
         "Listo"
     )
@@ -212,30 +210,8 @@ fun RegisterScreen(
                     onContinue = { viewModel.nextStep() }
                 )
 
-                // Paso 5: Captura DNI Frontal
-                5 -> Step4DniFrontal(
-                    fotoDniFrontalUri = uiState.fotoDniFrontalUri,
-                    kycDniState = uiState.kycDniState,
-                    ocrMatchResult = uiState.ocrMatchResult,
-                    onPhotoCaptured = { uri -> viewModel.setFotoDniFrontal(uri) },
-                    onContinue = { uri -> viewModel.validarDniFrontal(uri) },
-                    onDialogDismiss = { viewModel.resetOcrMatchResult() },
-                    onDialogProceed = { 
-                        viewModel.resetOcrMatchResult()
-                        viewModel.nextStep()
-                    }
-                )
-
-                // Paso 6: Captura DNI Reverso
-                6 -> Step5DniReverso(
-                    fotoDniReversoUri = uiState.fotoDniReversoUri,
-                    kycDniState = uiState.kycDniState,
-                    onPhotoCaptured = { uri -> viewModel.setFotoDniReverso(uri) },
-                    onContinue = { uri -> viewModel.validarDniReverso(uri) }
-                )
-
-                // Paso 7: Escaneo Facial
-                7 -> Step6EscaneoFacial(
+                // Paso 5: Escaneo Facial
+                5 -> Step6EscaneoFacial(
                     kycLivenessState = uiState.kycLivenessState,
                     onFramesCaptured = { frames -> 
                         frames.forEach { viewModel.addLivenessFrame(it) }
@@ -245,8 +221,8 @@ fun RegisterScreen(
                     onContinue = { viewModel.nextStep() }
                 )
 
-                // Paso 8: Verificando / Bienvenida
-                8 -> {
+                // Paso 6: Verificando / Bienvenida
+                6 -> {
                     if (uiState.isVerifying) {
                         Step7VerificandoIdentidad()
                     } else if (uiState.verificationSuccess) {
