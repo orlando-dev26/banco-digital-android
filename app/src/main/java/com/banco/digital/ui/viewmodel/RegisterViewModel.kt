@@ -253,8 +253,8 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
                 fechaAceptacionTerminos = currentState.fechaAceptacionTerminos
             )
 
-            // Guardar directamente en la base de datos SQLite del teléfono
-            repository.guardarRegistro(nuevoUsuario)
+            // Guardar en la base de datos SQLite del teléfono y en Spring Boot
+            repository.guardarRegistro(nuevoUsuario, currentState.password)
 
             _uiState.update {
                 it.copy(

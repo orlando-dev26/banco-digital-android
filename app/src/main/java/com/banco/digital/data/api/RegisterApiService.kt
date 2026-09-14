@@ -11,16 +11,38 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import java.util.concurrent.TimeUnit
 
+// Modelo de datos esperado por el backend Spring Boot
+data class SpringUserRequest(
+    val dni: String,
+    val password: String,
+    val celular: String,
+    val name: String,
+    val lastName: String,
+    val email: String
+)
+
+data class SpringUserResponse(
+    val id: Long?,
+    val name: String?,
+    val message: String?
+)
+
 interface RegisterApiService {
 
+    // Endpoint provisional local
     @POST("api/register")
     suspend fun registrarUsuario(@Body usuario: UsuarioRegistro): Response<RegisterResponse>
+
+    // NUEVO ENDPOINT SPRING BOOT
+    @POST("user/insert")
+    suspend fun registrarUsuarioSpring(@Body request: SpringUserRequest): Response<Void>
 
     @GET("api/users")
     suspend fun listarUsuarios(): Response<List<UsuarioRegistro>>
 
     companion object {
-        fun create(baseUrl: String = "http://127.0.0.1:3000/"): RegisterApiService {
+        // Se apunta por defecto a 10.0.2.2 que es el localhost de la PC desde el emulador Android
+        fun create(baseUrl: String = "http://10.0.2.2:8092/"): RegisterApiService {
             val logging = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             }
