@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: email-microservice
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: email-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: "*"
+            value:
+              default:
+                type: com.corporation_dev.email_microservice.event.ProductCreatedEvent
+            use:
+              type:
+                headers: false
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: mario.milla420@gmail.com
+    password: zrdj gwbp hoxf jxye
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 9000
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}
+  client:
+    service-url:
+      defaultZone: http://localhost:8090/eureka/
